@@ -1,6 +1,10 @@
-import { If } from 'classic-react-components'
+import { For, If } from 'classic-react-components'
 import { useEventListener } from 'classic-react-hooks'
 import { MouseEvent, useRef, useState } from 'react'
+
+import { getRandomArbitrary } from './lib'
+import ClrBox from './components/ClrBox'
+import useGameStatus from './hooks/useGameStatus'
 
 export default function App() {
   const [clrBoxes, setClrBoxes] = useState([
@@ -11,7 +15,7 @@ export default function App() {
   ])
   const clrBoxesRef = useRef<Map<number, HTMLDivElement>>(new Map())
   const [level, setLevel] = useState(1)
-  const [gameStatus, setGameStatus] = useState<"overed" | "running" | "toStart">("toStart")
+  const {gameStatus, setGameStatus} = useGameStatus()
   const [currentLevelClrSequence, setCurrentLevelClrSequence] = useState({
     toSequenceMatch: [] as Array<string>,
     currentMatchedSequence: [] as Array<string>
@@ -113,6 +117,7 @@ export default function App() {
 
   return (
     <div className='bg-blue-950 h-screen'>
+
       <div className='text-center pt-10'>
         <If condition={gameStatus == "toStart"}>
           <p className='text-3xl'>Press a key to start</p>
@@ -124,23 +129,17 @@ export default function App() {
           <p className='text-3xl'>Game overed, press any key to start!!</p>
         </If>
       </div>
+
+
       <div className='grid place-content-center w-1/2 mx-auto pt-16 gap-10' style={{ gridTemplateColumns: "auto auto" }}>
-        {
-          clrBoxes.map((box, idx) => {
+        <For data={clrBoxes}>
+          {(box, idx) => {
             return (
-              <div onClick={(e) => {
-                handleClrBoxClick(e)
-              }} ref={(node) => clrBoxesRef.current.set(idx + 1, node!)} key={box.color} data-idx={idx} data-bg={box.color} className={`clr-box w-40 h-40 rounded-lg cursor-pointer`} style={{ backgroundColor: box.color }}></div>
+              <ClrBox onClick={handleClrBoxClick} boxRef={(node) => { clrBoxesRef.current.set(idx + 1, node!) }} key={box.color} data-idx={idx} data-bg={box.color} style={{ backgroundColor: box.color }}></ClrBox>
             )
-          })
-        }
+          }}
+        </For>
       </div>
     </div>
   )
-}
-
-function getRandomArbitrary(min: number, max: number) {
-  min = Math.ceil(min);
-  max = Math.floor(max);
-  return Math.floor(Math.random() * (max - min + 1)) + min;
 }
