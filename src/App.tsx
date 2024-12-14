@@ -1,16 +1,20 @@
 import { For, If } from 'classic-react-components'
-import { MouseEvent, useRef, useState } from 'react'
+import { MouseEvent, useEffect, useRef, useState } from 'react'
 
 import ClrBox from './components/ClrBox'
 
 import useGameStatus from './hooks/useGameStatus'
 import useCurrentLevelSequence from './hooks/useCurrentLevelSequence'
 import { getRandomArbitrary } from './lib'
+import useGameSound from './hooks/useGameSound'
 
 export default function App() {
   const [level, setLevel] = useState(1)
-  const { gameStatus, setGameStatus } = useGameStatus()
+  const { playGameOverSound, playGameStartSound, playBoxClickSound } = useGameSound()
+
+  const { gameStatus, setGameStatus } = useGameStatus({ onStart: () => playGameStartSound() })
   const { currentLevelClrSequence, setCurrentLevelClrSequence, currentClickIdx, setCurrentClickIdx } = useCurrentLevelSequence()
+
   const [clrBoxes] = useState([
     { color: "red", },
     { color: "blue" },
@@ -19,17 +23,28 @@ export default function App() {
   ])
   const clrBoxesRef = useRef<Map<number, HTMLDivElement>>(new Map())
 
+
+
   const handleClrBoxClick = (e: MouseEvent<HTMLDivElement, globalThis.MouseEvent>) => {
     if (gameStatus == "toStart" || gameStatus == "overed") return
 
+    ;(e.target as HTMLDivElement).classList.add("scale-down");
+    setTimeout(()=>{
+      ;(e.target as HTMLDivElement).classList.remove("scale-down")
+    },302)
+
+    playBoxClickSound()
+
     const box_clr = (e.target as HTMLDivElement)?.getAttribute("data-bg")
 
-    
+
     if (level == 1) {
       if (box_clr) {
         currentLevelClrSequence.toSequenceMatch.push(box_clr)
       }
-      goToNextLevel()
+      setTimeout(() =>{
+        goToNextLevel()
+      },1000)
     } else {
       // console.log(currentLevelClrSequence.toSequenceMatch, box_clr, currentClickIdx)
       // matched sequence with index wise
@@ -37,7 +52,9 @@ export default function App() {
       if (currentLevelClrSequence.toSequenceMatch[currentClickIdx] == box_clr) {
         // if all matched are done correctly, then increase the level
         if (currentClickIdx == currentLevelClrSequence.toSequenceMatch.length - 1) {
-          goToNextLevel()
+          setTimeout(()=>{
+            goToNextLevel()
+          },1000)
           // console.log("next")
         } else {
           setCurrentClickIdx((_val) => _val + 1)
@@ -49,6 +66,7 @@ export default function App() {
   }
 
   const gameOver = () => {
+    playGameOverSound()
     setGameStatus("overed")
     setGameToInitialState()
   }
@@ -66,7 +84,7 @@ export default function App() {
     setLevel((_level) => _level + 1)
     setCurrentClickIdx(0)
 
-    const {boxToAnimate, boxBg} = selectRandomBoxAndAnimate()
+    const { boxToAnimate, boxBg } = selectRandomBoxAndAnimate()
 
     if (boxToAnimate) {
       // next level sequence generation
@@ -78,7 +96,7 @@ export default function App() {
     }
   }
 
-  const selectRandomBoxAndAnimate = () =>{
+  const selectRandomBoxAndAnimate = () => {
     const randomIdx = getRandomArbitrary(1, 4)
 
     const boxToAnimate = clrBoxesRef.current.get(randomIdx)
@@ -89,7 +107,7 @@ export default function App() {
       }, 350)
     }
 
-    return {boxToAnimate, boxBg: boxToAnimate?.getAttribute("data-bg")}
+    return { boxToAnimate, boxBg: boxToAnimate?.getAttribute("data-bg") }
   }
 
 

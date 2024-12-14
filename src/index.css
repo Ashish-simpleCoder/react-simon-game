@@ -16,6 +16,13 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+.clr-box{
+  transition: transform 0.3s ease;
+}
+
+.scale-down{
+  transform: scale(0.7);
+}
 
 .animate-box{
   animation: animateBox 0.3s ease;
