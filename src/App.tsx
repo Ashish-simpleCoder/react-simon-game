@@ -1,5 +1,5 @@
 import { For, If } from 'classic-react-components'
-import { MouseEvent, useEffect, useRef, useState } from 'react'
+import { MouseEvent, useRef, useState } from 'react'
 
 import ClrBox from './components/ClrBox'
 
